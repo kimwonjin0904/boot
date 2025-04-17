@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+    <script src="https://unpkg.com/typed.js@2.0.16/dist/typed.umd.js"></script>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="card" class="mb-3" style="display: inline-block; width: 40%;">
+        <img src="/img/1.webp" alt="card" class="card-image">
+        <div class="form-container">
+            <h1 id="h1">Open Card</h1>
+            <form id="cardForm" action="#" method="post">
+                <input type="text" id="toNm" name="toNm" class="form-control" placeholder="이름" required>
+                <input type="email" id="email" name="email" class="form-control" placeholder="이메일" required>
+                <button style="background-color: #FFB7C5;" type="submit" id="btn" class="btn mt-2 w-100">카드 받기</button>
+                <button style="background-color: #FFB7C5;" type="submit" id="btn" class="btn mt-2 w-100" onclick="window.location.href='/letterForm'">편지 쓰기</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="letter" style="display: none;">
+        <h1>
+            <span id="typing-text1" style="font-size: 25px;"></span>
+        </h1>
+        <h1>
+            <span id="typing-text2" style="font-size: 25px;"></span>
+        </h1>
+        <h1>
+            <span id="typing-text3" style="font-size: 20px;"></span>
+        </h1>
+    </div>
+
+    <div id="sakura">
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+        <div class="petal">🌸</div>
+    </div>
+
+    <audio id="audio_id" loop>
+        <source src="/audio/Sakura-Romance_Royalty-Free-Music.mp3" type="audio/wav">
+    </audio>
+
+    <script>    
+        document.addEventListener("DOMContentLoaded", function() {
+            const petals = document.querySelectorAll(".petal");
+            petals.forEach(petal => {
+                const left = Math.random() * 100;
+                const duration = Math.random() * 5 + 5; // 5~10초
+                const delay = Math.random() * 5;
+                const size = Math.random() * 20 + 10;
+
+                petal.style.left = `${left}%`;
+                petal.style.fontSize = `${size}px`; 
+                petal.style.animationDuration = `${duration}s`;
+                petal.style.animationDelay = `${delay}s`;
+            });
+        });
+
+        var currentMessage = {};
+
+        function typingCard() {
+            var options = {
+                strings: currentMessage['msg1'],
+                typeSpeed: 50,
+                backSpeed: 30,
+                loop: false,
+                onComplete: function(self) {
+                    self.cursor.remove();
+                    new Typed("#typing-text2", options1);
+                }
+            };
+
+            var options1 = {
+                strings: currentMessage['msg2'],
+                typeSpeed: 50,
+                backSpeed: 30,
+                showCursor : true,
+                cursorChar : "_",
+                loop: false,
+                onComplete: function(self) {
+                    self.cursor.remove();
+                    opCompleteLast();
+                }
+            };
+
+            var typed = new Typed("#typing-text1", options);
+
+            function opCompleteLast() {
+                new Typed("#typing-text3", {
+                    strings: currentMessage['msg3'],
+                    typeSpeed: 50,
+                    backSpeed: 30,
+                    showCursor : true,
+                    cursorChar : "_",
+                    loop: false,
+                    onComplete: function(self) {
+                        self.cursor.remove();
+                    }
+                });
+            }
+        }
+
+        $(document).ready(function() {
+            $("#cardForm").submit(function(e) {
+                e.preventDefault();
+                
+                var nm = $("#toNm").val();  // 수정된 부분
+                var email = $("#email").val();  // 수정된 부분
+                $.ajax({
+                    url: "/getCard",
+                    type: "POST",
+                    data: { toNm: nm, email: email },
+                    success: function(res) {
+                        if (res != null && res != "") {
+                            currentMessage['msg1'] = ["To " + res.toNm + " " + res.messageOne];
+                            currentMessage['msg2'] = [res.messageTwo];
+                            currentMessage['msg3'] = [res.messageThree]; 
+
+                            $("#audio_id")[0].play();
+                            $("#cardForm").hide();
+                            $("#letter").show();
+                            typingCard();
+                        } else {
+                            alert("편지가 없음");
+                            $("#cardForm")[0].reset();
+                        }
+                    },
+                    error: function(error) { 분
+                        alert("입력 정보 문제있음!");
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
